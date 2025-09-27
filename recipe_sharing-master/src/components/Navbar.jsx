@@ -24,12 +24,12 @@ export default function Navbar() {
             <h2>Recipe Blog</h2>
             <ul>
                 <li> <NavLink to='/'>Home</NavLink></li>
-                <li onClick={()=>isLogin && setIsOpen(true)}> <NavLink to={!isLogin ? '/myRecipe' : "/"}>MyRecipe</NavLink></li>
+                <li> <NavLink to={!isLogin ? '/myRecipe' : "/"} onClick={()=>isLogin && setIsOpen(true)}>MyRecipe</NavLink></li>
                 <li onClick={()=>isLogin && setIsOpen(true)}> <NavLink to={!isLogin ?  '/favRecipe' : "/"}>Favorites</NavLink></li>
                 <li onClick={checkLogin}>{(isLogin) ? "Login" : "Logout"} </li>
             </ul>
         </header>
-        {(isOpen) && <Modal onClose = {() => setIsOpen(false)}><InputForm/></Modal>}
+        {(isOpen) && <Modal onClose = {() => setIsOpen(false)}><InputForm setIsOpen={setIsOpen} onLoginSuccess={() => setIsLogin(false)} /></Modal>}
     </>
   )
 }

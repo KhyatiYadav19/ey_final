@@ -34,7 +34,7 @@ const addRecipe=async(req,res)=>{
     }
 
     const newRecipe=await Recipes.create({
-        title,ingredients,instructions,time,  coverImage: req.file.filename
+        title,ingredients,instructions,time,  coverImage: req.file.filename, createdBy: req.user.id
 })
    return res.json(newRecipe)
 }
@@ -56,14 +56,28 @@ const editRecipe=async(req,res)=>{
 }
 const deleteRecipe=async(req,res)=>{
     try {
-        const deletedRecipe = await Recipes.findByIdAndDelete(req.params.id);
+        const deletedRecipe = await Recipes.findById(req.params.id);
         if (!deletedRecipe) {
             return res.status(404).json({ message: "Recipe not found" });
         }
+        if (deletedRecipe.createdBy.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ message: "Unauthorized to delete this recipe" });
+        }
+        await Recipes.findByIdAndDelete(req.params.id);
         return res.json({ message: "Recipe deleted successfully", deletedRecipe });
     } catch (err) {
         return res.status(400).json({ message: "Error deleting the recipe"});
     }
 }
 
-module.exports={getRecipes,getRecipe,addRecipe,editRecipe,deleteRecipe, upload}
+const getMyRecipes = async (req, res) => {
+    try {
+        const recipes = await Recipes.find({ createdBy: req.user.id }).populate('createdBy', 'username email');
+        res.json(recipes);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching my recipes" });
+    }
+};
+
+module.exports={getRecipes,getRecipe,addRecipe,editRecipe,deleteRecipe, getMyRecipes, upload}

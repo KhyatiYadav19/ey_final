@@ -8,22 +8,44 @@ import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import axios from 'axios';
 
-export default function RecipeItems() {
-  const recipes = useLoaderData()
-  const [allRecipes, setAllRecipes] = useState()
+export default function RecipeItems({ recipes }) {
+  const [allRecipes, setAllRecipes] = useState(recipes || [])
   let path = window.location.pathname === "/myRecipe" ? true : false
   let favItems = JSON.parse(localStorage.getItem("fav")) ?? []
   const [isFavRecipe, setIsFavRecipe] = useState(false)
   console.log(allRecipes)
 
     useEffect(() => {
-        setAllRecipes(recipes)
+        setAllRecipes(recipes || [])
     }, [recipes])
 
     const onDelete = async (id) => {
-      await axios.delete(`http://localhost:5000/recipe/${id}`)
-          .then((res) => console.log(res))
-          setAllRecipes(recipes => recipes.filter(recipe => recipe._id !== id))
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.delete(`http://localhost:5000/recipe/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log(response);
+
+        // Remove from localStorage fav if present
+        let favItems = JSON.parse(localStorage.getItem("fav")) || [];
+        if (favItems.some(fav => fav._id === id)) {
+          favItems = favItems.filter(fav => fav._id !== id);
+          localStorage.setItem("fav", JSON.stringify(favItems));
+        }
+
+        // Filter UI
+        setAllRecipes(prevRecipes => prevRecipes.filter(recipe => recipe._id !== id));
+      } catch (error) {
+        console.error('Delete failed:', error);
+        if (error.response?.status === 403) {
+          alert('Unauthorized to delete this recipe.');
+        } else if (error.response?.status === 404) {
+          alert('Recipe not found.');
+        } else {
+          alert('Error deleting recipe. Please try again.');
+        }
+      }
     }
 
     const favRecipe = (item) => {
@@ -44,7 +66,7 @@ export default function RecipeItems() {
                               <div className='card-body'>
                                   <div className='title'>{item.title}</div>
                                   <div className='icons'>
-                                      <div className='timer'><BsStopwatchFill />30min</div>
+                                      <div className='timer'><BsStopwatchFill /></div>
                                       {(!path)?<FaHeart onClick={() => favRecipe(item)}
                                         style={{ color: (favItems.some(res => res._id === item._id)) ? "red" : "" }}
                                         />:

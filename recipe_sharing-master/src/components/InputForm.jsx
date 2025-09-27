@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export default function InputForm({ setIsOpen }) {
+export default function InputForm({ setIsOpen, onLoginSuccess }) {
     const [username, setUsername] = useState(""); // New state for username
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -18,13 +18,14 @@ export default function InputForm({ setIsOpen }) {
             : { email, password };           // Login only needs email & password
 
         try {
-            const res = await axios.post(`http://localhost:5000/${endpoint}`, requestData);
+            const res = await axios.post(`http://localhost:5000/api/${endpoint}`, requestData);
 
             if (res.data.token) {
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
 
                 if (setIsOpen) setIsOpen(false); // Close modal if function exists
+                if (onLoginSuccess) onLoginSuccess(); // Update login state
             }
         } catch (error) {
             console.error("Login/Register Error:", error);

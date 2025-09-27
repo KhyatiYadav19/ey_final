@@ -1,33 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import recipe from '../assets/recipe.jpeg';
 import RecipeItems from '../components/RecipeItems';
 import Modal from '../components/Modal';
 import InputForm from '../components/InputForm';
-import axios from "axios";
 import '../App.css';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLoaderData, useLocation } from 'react-router-dom'
 
 export default function Home() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [isOpen, setIsOpen] = useState(false);
-  const [recipes, setRecipes] = useState([]);
+  const recipes = useLoaderData();
+
+  const getTitle = () => {
+    if (location.pathname === '/myRecipe') return 'My Recipes';
+    if (location.pathname === '/favRecipe') return 'Favorite Recipes';
+    return 'Recipe Sharing';
+  };
+
+  const getSubtitle = () => {
+    if (location.pathname === '/myRecipe') return 'Your saved recipes';
+    if (location.pathname === '/favRecipe') return 'Your favorite recipes';
+    return 'The Recipe Sharing Web App allows users to discover and share a wide variety of recipes.';
+  };
 
   const addRecipe = () => {
     setIsOpen(true);
   };
-
-  useEffect(() => {
-    const getRecipes = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/recipe");
-        setRecipes(response.data);
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
-      }
-    };
-
-    getRecipes();
-  }, []);
 
   return (
     <>
